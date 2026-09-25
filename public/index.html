@@ -16,8 +16,8 @@
             min-height: 100vh;
 
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
 
             background: #0b0b0f;
             color: white;
@@ -27,7 +27,7 @@
 
         .card {
             width: 90%;
-            max-width: 550px;
+            max-width: 500px;
 
             padding: 50px 30px;
 
@@ -42,7 +42,7 @@
         }
 
         h1 {
-            margin: 0 0 12px;
+            margin: 0 0 10px;
             font-size: 34px;
         }
 
@@ -52,7 +52,7 @@
         }
 
         #ip {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: bold;
             color: #00ff88;
             word-break: break-all;
@@ -70,17 +70,13 @@
 <body>
 
     <div class="card">
-
         <h1>Your IP Address</h1>
 
         <p>Your public IP address is:</p>
 
-        <div id="ip">
-            Loading...
-        </div>
+        <div id="ip">Loading...</div>
 
         <div id="error"></div>
-
     </div>
 
     <script>
@@ -93,8 +89,6 @@
 
                 const text = await response.text();
 
-                console.log("API response:", text);
-
                 if (!response.ok) {
                     throw new Error(
                         "HTTP " + response.status + ": " + text
@@ -104,7 +98,7 @@
                 const data = JSON.parse(text);
 
                 if (!data.ip) {
-                    throw new Error("No IP was returned");
+                    throw new Error("No IP returned");
                 }
 
                 document.getElementById("ip").textContent = data.ip;
@@ -112,7 +106,7 @@
             } catch (error) {
                 console.error(error);
 
-                document.getElementById("ip").textContent = "Error";
+                document.getElementById("ip").textContent = "ERROR";
 
                 document.getElementById("error").textContent =
                     error.message;
