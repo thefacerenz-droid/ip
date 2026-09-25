@@ -16,8 +16,8 @@
             min-height: 100vh;
 
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
 
             background: #0b0b0f;
             color: white;
@@ -42,33 +42,26 @@
         }
 
         h1 {
-            margin: 0 0 10px;
-
+            margin: 0 0 12px;
             font-size: 34px;
         }
 
         p {
-            margin: 0 0 30px;
-
             color: #888;
-            font-size: 16px;
+            margin-bottom: 30px;
         }
 
         #ip {
             font-size: 32px;
             font-weight: bold;
-
             color: #00ff88;
-
             word-break: break-all;
         }
 
         #error {
             margin-top: 20px;
-
             color: #ff5555;
             font-size: 14px;
-
             word-break: break-word;
         }
     </style>
@@ -92,28 +85,31 @@
 
     <script>
         async function getIP() {
-
             try {
-
                 const response = await fetch("/api/ip", {
                     method: "GET",
                     cache: "no-store"
                 });
 
-                const data = await response.json();
+                const text = await response.text();
+
+                console.log("API response:", text);
 
                 if (!response.ok) {
                     throw new Error(
-                        data.error ||
-                        data.details ||
-                        "API request failed"
+                        "HTTP " + response.status + ": " + text
                     );
+                }
+
+                const data = JSON.parse(text);
+
+                if (!data.ip) {
+                    throw new Error("No IP was returned");
                 }
 
                 document.getElementById("ip").textContent = data.ip;
 
             } catch (error) {
-
                 console.error(error);
 
                 document.getElementById("ip").textContent = "Error";
