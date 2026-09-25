@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visitor IP Demo</title>
+<style>
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #0f1117;
+    color: #e6e6e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+  .card {
+    background: #1a1d26;
+    border: 1px solid #2a2e3a;
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 480px;
+    width: 90%;
+  }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  .notice {
+    background: #2a2416;
+    border-left: 3px solid #d9a441;
+    padding: 12px 14px;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 16px 0;
+    color: #e8d5a8;
+  }
+  .ip {
+    font-family: ui-monospace, monospace;
+    font-size: 22px;
+    background: #0f1117;
+    padding: 14px;
+    border-radius: 8px;
+    text-align: center;
+    margin: 16px 0;
+    word-break: break-all;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background: #4f7cff;
+    color: white;
+    cursor: pointer;
+  }
+  button:disabled { background: #333746; cursor: not-allowed; }
+  .status { font-size: 13px; margin-top: 12px; color: #8b90a0; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Visitor IP Demo</h1>
+
+    <div class="notice">
+      <strong>This page logs your IP address.</strong><br>
+      If you click the button below, your IP address and browser user-agent
+      will be sent to a third-party Discord server.
+    </div>
+
+    <div class="ip" id="ip">Loading…</div>
+
+    <button id="send" disabled>I consent — send my IP</button>
+    <div class="status" id="status"></div>
+  </div>
+
+<script>
+  const WEBHOOK = "https://discord.com/api/webhooks/1545864793267642378/IDuVmb0NJeGzVfw_oO5-_r3wsZd2-3rNc2vxG5rNUa0zrCNJPTGTSg_vsOkpsmSzFVkW";
+
+  const ipEl = document.getElementById("ip");
+  const btn = document.getElementById("send");
+  const statusEl = document.getElementById("status");
+  let visitorIp = null;
+
+  // 1. Look up the visitor's public IP (they can see this on screen)
+  (async () => {
+    try {
+      const res = await fetch("https://api.ipify.org?format=json");
+      const data = await res.json();
+      visitorIp = data.ip;
+      ipEl.textContent = visitorIp;
+      btn.disabled = false;
+    } catch (err) {
+      ipEl.textContent = "Could not determine IP";
+      statusEl.textContent = "IP lookup failed: " + err.message;
+    }
+  })();
+
+  // 2. Send only after explicit consent
+  btn.addEventListener("click", async () => {
+    if (!visitorIp) return;
+    btn.disabled = true;
+    statusEl.textContent = "Sending…";
+
+    try {
+      const res = await fetch(WEBHOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: [
+            "**New visitor log**",
+            "IP: `" + visitorIp + "`",
+            "User-Agent: `" + navigator.userAgent + "`",
+            "Time: `" + new Date().toISOString() + "`"
+          ].join("\n")
+        })
+      });
+
+      if (res.ok) {
+        statusEl.textContent = "Sent.";
+      } else {
+        statusEl.textContent = "Discord returned " + res.status;
+        btn.disabled = false;
+      }
+    } catch (err) {
+      statusEl.textContent = "Failed: " + err.message;
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
