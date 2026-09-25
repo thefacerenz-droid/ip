@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Your IP</title>
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         body {
             margin: 0;
             min-height: 100vh;
@@ -23,56 +18,51 @@
         }
 
         .card {
-            width: 90%;
-            max-width: 500px;
-            padding: 45px 30px;
+            padding: 45px;
             text-align: center;
             background: #15151c;
-            border: 1px solid #292934;
             border-radius: 18px;
-            box-shadow: 0 20px 60px rgba(0,0,0,.5);
-        }
-
-        h1 {
-            margin: 0 0 12px;
-            font-size: 32px;
-        }
-
-        p {
-            color: #999;
-            margin-bottom: 25px;
         }
 
         #ip {
-            font-size: 28px;
-            font-weight: bold;
+            margin-top: 20px;
+            font-size: 30px;
             color: #00ff88;
-            word-break: break-all;
+            font-weight: bold;
+        }
+
+        #error {
+            margin-top: 15px;
+            color: #ff5555;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="card">
-        <h1>Your IP Address</h1>
-        <p>Your public IP address is:</p>
+<div class="card">
+    <h1>Your IP Address</h1>
 
-        <div id="ip">Loading...</div>
-    </div>
+    <div id="ip">Loading...</div>
+    <div id="error"></div>
+</div>
 
-    <script>
-        fetch("/api/ip")
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("ip").textContent =
-                    data.ip || "Unable to detect IP";
-            })
-            .catch(() => {
-                document.getElementById("ip").textContent =
-                    "Unable to detect IP";
-            });
-    </script>
+<script>
+fetch("/api/ip")
+    .then(async response => {
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || data.discord_error || "API error");
+        }
+
+        document.getElementById("ip").textContent = data.ip;
+    })
+    .catch(error => {
+        document.getElementById("ip").textContent = "Failed";
+        document.getElementById("error").textContent = error.message;
+    });
+</script>
 
 </body>
 </html>
