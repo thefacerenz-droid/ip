@@ -1,13 +1,18 @@
 export default async function handler(request) {
     try {
+        // Get visitor's public IP from Vercel's forwarded headers
+        const forwardedFor = request.headers.get("x-forwarded-for");
+
         const ip =
-            request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+            forwardedFor?.split(",")[0]?.trim() ||
             request.headers.get("x-real-ip") ||
             "Unknown";
 
-        const webhook = "PASTE_YOUR_NEW_WEBHOOK_HERE";
+        // PUT YOUR NEW DISCORD WEBHOOK BETWEEN THESE QUOTES
+        const webhook = "PASTE_NEW_WEBHOOK_HERE";
 
-        const discord = await fetch(webhook, {
+        // Send IP to Discord
+        const discordResponse = await fetch(webhook, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -17,18 +22,46 @@ export default async function handler(request) {
             })
         });
 
-        if (!discord.ok) {
-            return Response.json({
-                ip,
-                discord_error: await discord.text()
-            }, { status: 500 });
+        if (!discordResponse.ok) {
+            const errorText = await discordResponse.text();
+
+            return new Response(
+                JSON.stringify({
+                    error: "Discord webhook failed",
+                    details: errorText
+                }),
+                {
+                    status: 500,
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
         }
 
-        return Response.json({ ip });
+        return new Response(
+            JSON.stringify({
+                ip: ip
+            }),
+            {
+                status: 200,
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }
+        );
 
     } catch (error) {
-        return Response.json({
-            error: error.message
-        }, { status: 500 });
+        return new Response(
+            JSON.stringify({
+                error: error.message
+            }),
+            {
+                status: 500,
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }
+        );
     }
 }
