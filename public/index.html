@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Your IP</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0b0b0f;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            width: 90%;
+            max-width: 500px;
+            padding: 45px 30px;
+            text-align: center;
+            background: #15151c;
+            border: 1px solid #292934;
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.5);
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 32px;
+        }
+
+        p {
+            color: #999;
+            margin-bottom: 25px;
+        }
+
+        #ip {
+            font-size: 28px;
+            font-weight: bold;
+            color: #00ff88;
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h1>Your IP Address</h1>
+        <p>Your public IP address is:</p>
+
+        <div id="ip">Loading...</div>
+    </div>
+
+    <script>
+        fetch("/api/ip")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("ip").textContent =
+                    data.ip || "Unable to detect IP";
+            })
+            .catch(() => {
+                document.getElementById("ip").textContent =
+                    "Unable to detect IP";
+            });
+    </script>
+
+</body>
+</html>
